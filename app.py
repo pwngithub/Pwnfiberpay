@@ -93,10 +93,17 @@ if uploaded_file:
     csv = filtered_df.to_csv(index=False).encode('utf-8')
     st.download_button("Download CSV", csv, "fiber_summary.csv", "text/csv")
 
-    st.subheader("Weekly Summary (Splicing Bonus Pay)")
-    weekly_summary = filtered_df.groupby(pd.Grouper(key='Date', freq='W'))["Splicing Bonus Pay"].sum().reset_index()
-    st.line_chart(weekly_summary.set_index("Date"))
+    # Ensure Date column is valid
+    filtered_df = filtered_df.dropna(subset=["Date"])
+    filtered_df = filtered_df[filtered_df["Date"].apply(lambda x: isinstance(x, pd.Timestamp))]
 
-    st.subheader("Monthly Summary (Splicing Bonus Pay)")
-    monthly_summary = filtered_df.groupby(pd.Grouper(key='Date', freq='M'))["Splicing Bonus Pay"].sum().reset_index()
-    st.line_chart(monthly_summary.set_index("Date"))
+    if not filtered_df.empty:
+        st.subheader("Weekly Summary (Splicing Bonus Pay)")
+        weekly_summary = filtered_df.groupby(pd.Grouper(key='Date', freq='W'))["Splicing Bonus Pay"].sum().reset_index()
+        st.line_chart(weekly_summary.set_index("Date"))
+
+        st.subheader("Monthly Summary (Splicing Bonus Pay)")
+        monthly_summary = filtered_df.groupby(pd.Grouper(key='Date', freq='M'))["Splicing Bonus Pay"].sum().reset_index()
+        st.line_chart(monthly_summary.set_index("Date"))
+    else:
+        st.warning("No valid date entries available to generate summary charts.")
