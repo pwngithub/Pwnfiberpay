@@ -9,7 +9,9 @@ st.title("Fiber Splicing Dashboard")
 uploaded_file = st.file_uploader("Upload Fiber Pay Excel File", type=["xlsx"])
 
 if uploaded_file:
-    df = pd.read_excel(uploaded_file)
+    df = pd.read_excel(uploaded_file, header=0)
+    df.columns = df.columns.str.strip()
+    st.write("Detected columns:", df.columns.tolist())
 
     # Extract metrics
     import re
