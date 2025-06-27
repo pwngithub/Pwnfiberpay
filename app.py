@@ -13,6 +13,13 @@ if uploaded_file:
     df.columns = df.columns.str.strip()
     st.write("Detected columns:", df.columns.tolist())
 
+    # Validate required columns
+    required_columns = ['Project', 'Technician Name', 'Closure/Panel Count', 'Hours Worked']
+    missing = [col for col in required_columns if col not in df.columns]
+    if missing:
+        st.error(f"Missing required column(s): {', '.join(missing)}")
+        st.stop()
+
     # Extract metrics
     import re
     def extract_metrics(row):
@@ -31,7 +38,7 @@ if uploaded_file:
     df = df.copy()
     metrics = df.apply(extract_metrics, axis=1)
     df = pd.concat([df, metrics], axis=1)
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    df['Date'] = pd.to_datetime(df.get('Date'), errors='coerce')
     df['Splicing Bonus Pay'] = df['Splicing Hours'] * 25.00
 
     # Filters
