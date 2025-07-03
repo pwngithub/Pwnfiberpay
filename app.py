@@ -40,9 +40,14 @@ if uploaded_file:
     other_emp_df["Adjusted Splice Count"] = other_emp_df["Splice Count"] / 2
 
     combined_df = pd.concat([split_df, other_emp_df], ignore_index=True)
+    combined_df = combined_df[combined_df["Technician Name"].isin(selected_techs) & combined_df["Project"].isin(selected_projects)]
+    
 
     techs = combined_df["Technician Name"].unique().tolist()
     selected_techs = st.sidebar.multiselect("Select Technicians", techs, default=techs)
+    projects = combined_df["Project"].dropna().unique().tolist()
+    selected_projects = st.sidebar.multiselect("Select Projects", projects, default=projects)
+    
 
     st.subheader("Total Splice Count by Technician")
     total_df = combined_df.groupby(["Technician Name", "Technician Role"])["Adjusted Splice Count"].sum().reset_index()
