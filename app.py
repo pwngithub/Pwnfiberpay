@@ -63,3 +63,50 @@ if uploaded_file:
     daily_df = combined_df.groupby(["Date", "Technician Name"])["Adjusted Splice Count"].sum().reset_index()
     daily_filtered = daily_df[daily_df["Technician Name"].isin(selected_techs)]
     st.line_chart(daily_filtered.pivot(index="Date", columns="Technician Name", values="Adjusted Splice Count"))
+
+
+    from io import BytesIO
+    from reportlab.lib.pagesizes import letter
+    from reportlab.pdfgen import canvas
+
+    def create_pdf(total_df, closure_type_df, splice_type_df):
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
+        c.setFont("Helvetica", 12)
+        y = height - 50
+        c.drawString(50, y, "Splice Report Summary")
+        y -= 30
+
+        c.drawString(50, y, "Total Splice Counts by Technician:")
+        y -= 20
+        for _, row in total_df.iterrows():
+            c.drawString(60, y, f"{row['Technician Name']} ({row['Technician Role']}): {row['Adjusted Splice Count']}")
+            y -= 15
+
+        y -= 20
+        c.drawString(50, y, "Splice Counts by Closure Type:")
+        y -= 20
+        for _, row in closure_type_df.iterrows():
+            c.drawString(60, y, f"{row['Closure Type']}: {row['Adjusted Splice Count']}")
+            y -= 15
+
+        y -= 20
+        c.drawString(50, y, "Splice Counts by Splice Type:")
+        y -= 20
+        for _, row in splice_type_df.iterrows():
+            c.drawString(60, y, f"{row['Splice Type']}: {row['Adjusted Splice Count']}")
+            y -= 15
+
+        c.save()
+        buffer.seek(0)
+        return buffer
+
+    if st.button("Generate PDF Report"):
+        pdf_buffer = create_pdf(filtered_total, closure_type_df, splice_type_df)
+        st.download_button(
+            label="Download PDF",
+            data=pdf_buffer,
+            file_name="splice_report.pdf",
+            mime="application/pdf"
+        )
