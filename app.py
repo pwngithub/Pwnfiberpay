@@ -36,9 +36,14 @@ if uploaded_file:
         def extract_closure_details(row):
             text = row.get("Closures/Panels", "")
             splice_count_match = re.search(r'Splice Count:\s*(\d+)', text)
-            return int(splice_count_match.group(1)) if splice_count_match else 0
+            closure_type_match = re.search(r'Closure Type:\s*([^,]+)', text)
+            splice_type_match = re.search(r'Splice Type:\s*([^,]+)', text)
+            row["Splice Count"] = int(splice_count_match.group(1)) if splice_count_match else 0
+            row["Closure Type"] = closure_type_match.group(1).strip() if closure_type_match else "Unknown"
+            row["Splice Type"] = splice_type_match.group(1).strip() if splice_type_match else "Unknown"
+            return row
 
-        raw_df["Splice Count"] = raw_df.apply(extract_closure_details, axis=1)
+        raw_df = raw_df.apply(extract_closure_details, axis=1)
 
         total_df = raw_df.groupby("Technician Name")["Splice Count"].sum().reset_index().rename(columns={"Splice Count": "Total Splice Count"})
         daily_df = raw_df.groupby(["Date", "Technician Name"])["Splice Count"].sum().reset_index().rename(columns={"Splice Count": "Daily Splice Count"})
