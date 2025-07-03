@@ -30,6 +30,8 @@ if uploaded_file:
         raw_df = pd.read_excel(uploaded_file, sheet_name=0)
         raw_df.columns = raw_df.columns.str.strip()
         raw_df["Date"] = pd.to_datetime(raw_df["Date"], errors='coerce')
+        raw_df["Technician Name"] = raw_df["Technician Name"].str.strip().str.title()
+        raw_df["Other Employee"] = raw_df["Other Employee"].fillna("").str.strip().str.title()
 
         def extract_closure_details(row):
             text = row.get("Closures/Panels", "")
@@ -43,7 +45,10 @@ if uploaded_file:
         weekly_df = raw_df.groupby([pd.Grouper(key="Date", freq="W"), "Technician Name"])["Splice Count"].sum().reset_index().rename(columns={"Splice Count": "Weekly Splice Count"})
         monthly_df = raw_df.groupby([pd.Grouper(key="Date", freq="M"), "Technician Name"])["Splice Count"].sum().reset_index().rename(columns={"Splice Count": "Monthly Splice Count"})
 
-    techs = total_df["Technician Name"].unique().tolist()
+
+    techs_primary = raw_df["Technician Name"].unique().tolist()
+    techs_other = raw_df["Other Employee"].unique().tolist()
+    techs = list(set(techs_primary + [t for t in techs_other if t]))
     selected_techs = st.sidebar.multiselect("Select Technicians", techs, default=techs)
 
     st.subheader("Total Splice Count by Technician")
