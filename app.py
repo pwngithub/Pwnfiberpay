@@ -94,3 +94,25 @@ if uploaded_file:
     st.subheader("Daily Splice Counts")
     daily_df = combined_df.groupby(["Date", "Technician Name"])["Adjusted Splice Count"].sum().reset_index()
     st.line_chart(daily_df.pivot(index="Date", columns="Technician Name", values="Adjusted Splice Count"))
+
+
+    # Date range picker and granularity
+    min_date = combined_df["Date"].min()
+    max_date = combined_df["Date"].max()
+    start_date, end_date = st.sidebar.date_input("Select Date Range", [min_date, max_date])
+    granularity = st.sidebar.radio("Time Granularity", ["Day", "Week", "Month"])
+
+    combined_df = combined_df[(combined_df["Date"] >= pd.to_datetime(start_date)) & (combined_df["Date"] <= pd.to_datetime(end_date))]
+
+    st.subheader(f"{granularity}ly Splice Counts")
+    if granularity == "Day":
+        time_df = combined_df.groupby(["Date", "Technician Name"])["Adjusted Splice Count"].sum().reset_index()
+        pivot = time_df.pivot(index="Date", columns="Technician Name", values="Adjusted Splice Count")
+    elif granularity == "Week":
+        time_df = combined_df.groupby([pd.Grouper(key="Date", freq="W"), "Technician Name"])["Adjusted Splice Count"].sum().reset_index()
+        pivot = time_df.pivot(index="Date", columns="Technician Name", values="Adjusted Splice Count")
+    elif granularity == "Month":
+        time_df = combined_df.groupby([pd.Grouper(key="Date", freq="M"), "Technician Name"])["Adjusted Splice Count"].sum().reset_index()
+        pivot = time_df.pivot(index="Date", columns="Technician Name", values="Adjusted Splice Count")
+
+    st.line_chart(pivot)
