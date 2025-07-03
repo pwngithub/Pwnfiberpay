@@ -64,6 +64,16 @@ if uploaded_file:
     filtered_weekly = weekly_df[weekly_df["Technician Name"].isin(selected_techs)]
     st.line_chart(filtered_weekly.pivot(index="Date", columns="Technician Name", values=filtered_weekly.columns[-1]))
 
+    st.subheader("Splice Counts by Closure Type")
+    closure_type_df = combined_df.groupby(["Closure Type"])["Adjusted Splice Count"].sum().reset_index()
+    st.dataframe(closure_type_df)
+    st.bar_chart(closure_type_df.set_index("Closure Type"))
+
+    st.subheader("Splice Counts by Splice Type")
+    splice_type_df = combined_df.groupby(["Splice Type"])["Adjusted Splice Count"].sum().reset_index()
+    st.dataframe(splice_type_df)
+    st.bar_chart(splice_type_df.set_index("Splice Type"))
+
     st.subheader("Monthly Splice Counts")
     filtered_monthly = monthly_df[monthly_df["Technician Name"].isin(selected_techs)]
     st.line_chart(filtered_monthly.pivot(index="Date", columns="Technician Name", values=filtered_monthly.columns[-1]))
